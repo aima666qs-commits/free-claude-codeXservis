@@ -12,7 +12,7 @@ class ManagedSkill:
 
 
 def _skill(slug: str, title: str, purpose: str, body: str) -> ManagedSkill:
-    return ManagedSkill(slug=slug, title=title, purpose=purpose, body=body.strip() + "\n")
+    return ManagedSkill(\n        slug=slug, title=title, purpose=purpose, body=body.strip() + "\n"\n    )
 
 
 BUILTIN_SKILLS: tuple[ManagedSkill, ...] = (
