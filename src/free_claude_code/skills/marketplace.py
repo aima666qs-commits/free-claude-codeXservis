@@ -55,7 +55,9 @@ def normalize_github_skill_url(url: str) -> str:
             raise SkillValidationError("URL must point to a SKILL.md file.")
         return clean
     if host != "github.com":
-        raise SkillValidationError("Only github.com or raw.githubusercontent.com is allowed.")
+        raise SkillValidationError(
+            "Only github.com or raw.githubusercontent.com is allowed."
+        )
 
     parts = [part for part in parsed.path.split("/") if part]
     if len(parts) < 5 or parts[2] != "blob":
@@ -63,10 +65,7 @@ def normalize_github_skill_url(url: str) -> str:
     if parts[-1].casefold() != "skill.md":
         raise SkillValidationError("URL must point to SKILL.md.")
     owner, repo, _, ref, *path = parts
-    return (
-        f"https://raw.githubusercontent.com/{owner}/{repo}/{ref}/"
-        + "/".join(path)
-    )
+    return f"https://raw.githubusercontent.com/{owner}/{repo}/{ref}/" + "/".join(path)
 
 
 def validate_skill_document(content: str) -> dict[str, Any]:
@@ -98,9 +97,7 @@ def validate_skill_document(content: str) -> dict[str, Any]:
         raise SkillValidationError("Frontmatter description is missing or too short.")
 
     findings = [
-        finding
-        for finding, pattern in _CRITICAL_PATTERNS
-        if pattern.search(content)
+        finding for finding, pattern in _CRITICAL_PATTERNS if pattern.search(content)
     ]
     if findings:
         raise SkillValidationError(
@@ -131,7 +128,7 @@ def _load_registry() -> dict[str, Any]:
         return {"skills": {}}
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return {"skills": {}}
     return data if isinstance(data, dict) else {"skills": {}}
 
@@ -157,7 +154,7 @@ def _skill_path(slug: str) -> Path:
 
 
 def _timestamp() -> str:
-    return datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    return datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
 
 
 def _backup(slug: str, source: Path) -> str | None:
