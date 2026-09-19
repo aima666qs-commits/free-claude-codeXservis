@@ -1,7 +1,5 @@
 """Idempotent deployment of the managed Claude Code skill pack."""
 
-from __future__ import annotations
-
 import os
 from dataclasses import asdict
 from pathlib import Path
