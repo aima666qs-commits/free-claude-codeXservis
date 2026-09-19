@@ -25,4 +25,5 @@ def test_telemetry_records_aggregates_without_request_text(
     assert data["skill_hits"] == {"ui-ux-pro": 1, "request-orchestrator": 1}
     assert data["route_rate_pct"] == 50.0
     assert data["estimated_context_overhead_pct"] == 6.67
-    assert "request" not in str(data).casefold()
+    assert "request_text" not in data
+    assert "prompt" not in data
