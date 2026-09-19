@@ -23,6 +23,7 @@ from free_claude_code.config.provider_catalog import (
     ProviderAuthKind,
 )
 from free_claude_code.core.json_types import JsonObject, JsonValue
+from free_claude_code.skills import managed_skill_status, sync_managed_skills
 
 from .dependencies import get_services
 from .ports import ApiServices
@@ -213,6 +214,19 @@ async def disconnect_connected_account(
     _require_connected_account_provider(provider_id)
     status = await services.admin.disconnect_connected_account(provider_id)
     return _no_store(status.as_dict())
+
+
+@router.get("/admin/api/skills")
+async def skills_status(request: Request):
+    require_loopback_admin(request)
+    return _no_store(managed_skill_status())
+
+
+@router.post("/admin/api/skills/sync")
+async def skills_sync(request: Request):
+    require_loopback_admin(request)
+    result = sync_managed_skills()
+    return _no_store(result)
 
 
 @router.get("/admin/api/models")
