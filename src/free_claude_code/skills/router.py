@@ -193,7 +193,9 @@ def select_skills(text: str, *, max_skills: int = _MAX_SKILLS) -> SkillSelection
         if score:
             scored.append((score, -priority, slug))
 
-    if len(normalized) >= 5000 and not any(item[2] == "context-engineering" for item in scored):
+    if len(normalized) >= 5000 and not any(
+        item[2] == "context-engineering" for item in scored
+    ):
         scored.append((1, -5, "context-engineering"))
 
     scored.sort(reverse=True)
