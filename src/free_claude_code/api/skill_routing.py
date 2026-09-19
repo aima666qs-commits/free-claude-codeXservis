@@ -6,7 +6,12 @@ from free_claude_code.application.routing import (
     RoutedMessagesRequest,
     RoutedTokenCountRequest,
 )
-from free_claude_code.core.anthropic import Message, MessagesRequest, SystemContent
+from free_claude_code.core.anthropic import (
+    Message,
+    MessagesRequest,
+    SystemContent,
+    TokenCountRequest,
+)
 from free_claude_code.core.token_estimation import estimate_text_tokens
 from free_claude_code.skills import record_skill_route, select_skills
 
@@ -22,7 +27,7 @@ def _message_text(message: Message) -> str:
     return "\n".join(parts)
 
 
-def _routing_text(request: MessagesRequest) -> str:
+def _routing_text(request: MessagesRequest | TokenCountRequest) -> str:
     user_messages = [
         _message_text(message)
         for message in request.messages
@@ -50,7 +55,7 @@ def _append_system(
     return prompt
 
 
-def _apply(request: MessagesRequest, *, record: bool) -> MessagesRequest:
+def _apply_messages(request: MessagesRequest, *, record: bool) -> MessagesRequest:
     routing_text = _routing_text(request)
     selection = select_skills(routing_text)
     original_estimate = estimate_text_tokens(
@@ -77,7 +82,7 @@ def apply_skill_routing(
     record: bool = True,
 ) -> RoutedMessagesRequest:
     """Inject a compact skill directive while preserving routing metadata."""
-    updated = _apply(routed.request, record=record)
+    updated = _apply_messages(routed.request, record=record)
     if updated is routed.request:
         return routed
     return replace(routed, request=updated)
@@ -87,7 +92,13 @@ def apply_skill_routing_to_token_count(
     routed: RoutedTokenCountRequest,
 ) -> RoutedTokenCountRequest:
     """Mirror skill injection for token counting without double-counting telemetry."""
-    updated = _apply(routed.request, record=False)
-    if updated is routed.request:
+    request = routed.request
+    routing_text = _routing_text(request)
+    selection = select_skills(routing_text)
+    if not selection.prompt:
         return routed
+    updated = request.model_copy(
+        update={"system": _append_system(request.system, selection.prompt)},
+        deep=True,
+    )
     return replace(routed, request=updated)
