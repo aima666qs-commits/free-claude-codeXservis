@@ -3,7 +3,7 @@ from free_claude_code.skills.router import select_skills
 
 def test_router_prioritizes_specific_skill_and_caps_selection() -> None:
     result = select_skills(
-        "Сделай Remotion анимированное видео и полностью реализуй его.",
+        "Build a Remotion animated video and complete the implementation.",
         max_skills=2,
     )
 
