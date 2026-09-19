@@ -1,7 +1,6 @@
 """Deterministic low-overhead routing for built-in Claude Code skills."""
 
 import re
-
 from dataclasses import dataclass
 
 _MAX_SKILLS = 2
