@@ -144,8 +144,16 @@ def _save_registry(data: dict[str, Any]) -> None:
     temp.replace(path)
 
 
+def _require_slug(slug: str) -> str:
+    normalized = slug.strip().casefold()
+    if not _SLUG_RE.fullmatch(normalized):
+        raise SkillValidationError("Invalid community skill slug.")
+    return normalized
+
+
 def _skill_path(slug: str) -> Path:
-    return skills_root() / f"community-{slug}" / "SKILL.md"
+    safe_slug = _require_slug(slug)
+    return skills_root() / f"community-{safe_slug}" / "SKILL.md"
 
 
 def _timestamp() -> str:
@@ -217,6 +225,7 @@ def community_skill_status() -> dict[str, Any]:
 
 
 def disable_community_skill(slug: str) -> dict[str, Any]:
+    slug = _require_slug(slug)
     path = _skill_path(slug)
     registry = _load_registry()
     skills = registry.get("skills")
@@ -238,6 +247,7 @@ def disable_community_skill(slug: str) -> dict[str, Any]:
 
 
 def enable_community_skill(slug: str) -> dict[str, Any]:
+    slug = _require_slug(slug)
     registry = _load_registry()
     skills = registry.get("skills")
     if not isinstance(skills, dict) or slug not in skills:
@@ -266,6 +276,7 @@ def enable_community_skill(slug: str) -> dict[str, Any]:
 
 
 def rollback_community_skill(slug: str) -> dict[str, Any]:
+    slug = _require_slug(slug)
     registry = _load_registry()
     skills = registry.get("skills")
     if not isinstance(skills, dict) or slug not in skills:
