@@ -13,10 +13,11 @@ _PACKAGE_NAME = "free_claude_code"
 ALLOWED_PACKAGE_DEPENDENCIES: dict[str, set[str]] = {
     "config": {"core"},
     "core": set(),
+    "skills": set(),
     "application": {"config", "core"},
     "messaging": {"core"},
     "providers": {"application", "config", "core"},
-    "api": {"application", "config", "core"},
+    "api": {"application", "config", "core", "skills"},
     "cli": {"config", "core"},
     "runtime": {
         "api",
@@ -26,6 +27,7 @@ ALLOWED_PACKAGE_DEPENDENCIES: dict[str, set[str]] = {
         "core",
         "messaging",
         "providers",
+        "skills",
     },
 }
 

@@ -569,3 +569,17 @@ Windows PowerShell:
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+
+## Managed Skills + Memory
+
+XFCC includes an idempotent managed layer for Claude Code. On server startup it synchronizes XFCC-owned skills into `~/.claude/skills/xfcc-*/SKILL.md` and maintains a bounded, additive memory-policy block in `~/.claude/CLAUDE.md`.
+
+The built-in pack covers discovery interviews, one-line request orchestration, natural-language humanization, UI/UX quality, reusable design references, context engineering, persistent project memory, marketing/Threads workflows, and Remotion video workflows.
+
+The Admin UI exposes **Skills + Memory** with live status and manual re-sync. The corresponding local-only APIs are:
+
+- `GET /admin/api/skills` — current managed-skill and memory status.
+- `POST /admin/api/skills/sync` — idempotently repair/update the managed layer.
+
+XFCC never overwrites unrelated user or third-party skill directories. Project-specific durable state belongs in `.claude/xfcc-memory.md`; secrets and transient logs must not be stored there.
