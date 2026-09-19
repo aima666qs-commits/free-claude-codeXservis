@@ -9,6 +9,7 @@ from free_claude_code.api.request_errors import (
     require_non_empty_messages,
 )
 from free_claude_code.api.request_ids import new_request_id
+from free_claude_code.api.skill_routing import apply_skill_routing_to_token_count
 from free_claude_code.application.errors import ApplicationError
 from free_claude_code.application.execution import TokenCounter
 from free_claude_code.application.routing import ModelRouter
@@ -46,6 +47,7 @@ class TokenCountHandler:
             try:
                 require_non_empty_messages(request_data.messages)
                 routed = self._model_router.resolve_token_count_request(request_data)
+                routed = apply_skill_routing_to_token_count(routed)
                 tokens = self._token_counter(
                     routed.request.messages, routed.request.system, routed.request.tools
                 )
