@@ -23,3 +23,9 @@ def test_router_does_not_inject_for_unrelated_short_text() -> None:
 
     assert result.slugs == ()
     assert result.prompt == ""
+
+
+def test_short_ui_token_does_not_match_build() -> None:
+    result = select_skills("Build the backend implementation.")
+
+    assert "ui-ux-pro" not in result.slugs
