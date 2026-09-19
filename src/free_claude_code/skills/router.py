@@ -1,5 +1,7 @@
 """Deterministic low-overhead routing for built-in Claude Code skills."""
 
+import re
+
 from dataclasses import dataclass
 
 _MAX_SKILLS = 2
@@ -182,6 +184,18 @@ class SkillSelection:
     prompt: str
 
 
+def _matches(normalized: str, needle: str) -> bool:
+    if needle.isascii() and needle.isalnum() and len(needle) <= 3:
+        return (
+            re.search(
+                rf"(?<![a-z0-9]){re.escape(needle)}(?![a-z0-9])",
+                normalized,
+            )
+            is not None
+        )
+    return needle in normalized
+
+
 def select_skills(text: str, *, max_skills: int = _MAX_SKILLS) -> SkillSelection:
     """Select at most a few high-signal skills without an extra model call."""
     normalized = " ".join(text.casefold().split())
@@ -190,7 +204,7 @@ def select_skills(text: str, *, max_skills: int = _MAX_SKILLS) -> SkillSelection
 
     scored: list[tuple[int, int, str]] = []
     for priority, (slug, needles) in enumerate(_RULES):
-        score = sum(1 for needle in needles if needle in normalized)
+        score = sum(1 for needle in needles if _matches(normalized, needle))
         if score:
             scored.append((score, -priority, slug))
 
