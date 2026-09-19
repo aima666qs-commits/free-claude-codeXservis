@@ -132,14 +132,15 @@ _RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
         "context-engineering",
         (
-            "context",
+            "context engineering",
+            "context window",
             "контекст",
-            "token",
+            "token limit",
             "токен",
-            "лимит",
-            "compact",
+            "лимит токен",
+            "auto compact",
             "compaction",
-            "эконом",
+            "эконом токен",
         ),
     ),
     (
@@ -198,8 +199,12 @@ def select_skills(text: str, *, max_skills: int = _MAX_SKILLS) -> SkillSelection
     ):
         scored.append((1, -5, "context-engineering"))
 
-    scored.sort(reverse=True)
-    slugs = tuple(item[2] for item in scored[:max_skills])
+    specific = [item for item in scored if item[2] != "request-orchestrator"]
+    generic = [item for item in scored if item[2] == "request-orchestrator"]
+    specific.sort(reverse=True)
+    generic.sort(reverse=True)
+    ranked = [*specific, *generic]
+    slugs = tuple(item[2] for item in ranked[:max_skills])
     if not slugs:
         return SkillSelection(slugs=(), prompt="")
 
