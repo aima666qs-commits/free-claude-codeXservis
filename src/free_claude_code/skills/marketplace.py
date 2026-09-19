@@ -261,12 +261,13 @@ def enable_community_skill(slug: str) -> dict[str, Any]:
     candidates = list(backups) if isinstance(backups, list) else []
     if not candidates:
         raise SkillValidationError("No snapshot is available to enable this skill.")
-    source = Path(str(candidates[-1]))
+    source = Path(str(candidates.pop()))
     if not source.is_file():
         raise SkillValidationError("Latest skill snapshot is missing.")
     target = _skill_path(slug)
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, target)
+    entry["backups"] = candidates
     entry["enabled"] = True
     _save_registry(registry)
     return {"ok": True, "slug": slug, "enabled": True}
