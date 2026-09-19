@@ -20,6 +20,7 @@ from free_claude_code.providers.openai_codex import (
 )
 from free_claude_code.providers.runtime import ProviderRuntime
 from free_claude_code.providers.runtime.factory import create_provider
+from free_claude_code.skills import sync_managed_skills
 
 from .application import ApplicationRuntime, RestartCallback
 from .asgi import RuntimeASGIApp
@@ -32,6 +33,7 @@ def build_asgi_app(
     restart_callback: RestartCallback | None = None,
 ) -> RuntimeASGIApp:
     """Construct the complete server application and its resource owner."""
+    sync_managed_skills()
     log_path = Path(os.getenv("LOG_FILE", server_log_path()))
     configure_logging(
         log_path,
