@@ -29,9 +29,7 @@ def _message_text(message: Message) -> str:
 
 def _routing_text(request: MessagesRequest | TokenCountRequest) -> str:
     user_messages = [
-        _message_text(message)
-        for message in request.messages
-        if message.role == "user"
+        _message_text(message) for message in request.messages if message.role == "user"
     ]
     return "\n".join(text for text in user_messages[-3:] if text).strip()
 
