@@ -34,7 +34,7 @@ def _read() -> dict[str, Any]:
         return _empty()
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return _empty()
     return raw if isinstance(raw, dict) else _empty()
 
