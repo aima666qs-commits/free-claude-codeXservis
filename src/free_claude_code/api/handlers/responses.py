@@ -13,6 +13,7 @@ from free_claude_code.api.response_streams import (
     terminal_execution_error_response,
     trace_terminal_execution_error,
 )
+from free_claude_code.api.skill_routing import apply_skill_routing
 from free_claude_code.application.errors import ApplicationError, InvalidRequestError
 from free_claude_code.application.execution import ProviderExecutor
 from free_claude_code.application.ports import ProviderResolver
@@ -69,6 +70,7 @@ class ResponsesHandler:
             response_request = MessagesRequest(**anthropic_payload)
             require_non_empty_messages(response_request.messages)
             routed = self._model_router.resolve_messages_request(response_request)
+            routed = apply_skill_routing(routed)
 
             streamed = self._provider_executor.stream(
                 routed,
