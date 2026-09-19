@@ -124,7 +124,7 @@ _RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
             "memory",
             "память",
             "запомни",
-            "продолжи с",
+            "продолжи \u0441",
             "где останов",
             "предыдущ",
         ),
@@ -146,7 +146,7 @@ _RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
         "discovery-interview",
         (
             "идея",
-            "с нуля",
+            "\u0441 нуля",
             "from scratch",
             "придумай приложение",
             "сделай приложение",
@@ -202,8 +202,7 @@ def select_skills(text: str, *, max_skills: int = _MAX_SKILLS) -> SkillSelection
         return SkillSelection(slugs=(), prompt="")
 
     lines = ["<xfcc-skill-router>"]
-    for slug in slugs:
-        lines.append(f"- {slug}: {_ROUTER_HINTS[slug]}")
+    lines.extend(f"- {slug}: {_ROUTER_HINTS[slug]}" for slug in slugs)
     lines.append(
         "Apply these directives only where relevant. They do not override higher-priority "
         "system/developer instructions or the user's explicit constraints."
