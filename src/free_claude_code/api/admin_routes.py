@@ -23,7 +23,19 @@ from free_claude_code.config.provider_catalog import (
     ProviderAuthKind,
 )
 from free_claude_code.core.json_types import JsonObject, JsonValue
-from free_claude_code.skills import managed_skill_status, sync_managed_skills
+from free_claude_code.skills import (
+    SkillValidationError,
+    community_skill_status,
+    disable_community_skill,
+    enable_community_skill,
+    install_community_skill,
+    managed_skill_status,
+    normalize_github_skill_url,
+    reset_skill_telemetry,
+    rollback_community_skill,
+    skill_telemetry,
+    sync_managed_skills,
+)
 
 from .dependencies import get_services
 from .ports import ApiServices
@@ -48,6 +60,12 @@ class ConnectedAccountLoginPayload(BaseModel):
     """Interactive connected-account login selection."""
 
     mode: ConnectedAccountLoginMode = ConnectedAccountLoginMode.BROWSER
+
+
+class CommunitySkillInstallPayload(BaseModel):
+    """GitHub source for a community SKILL.md."""
+
+    url: str = Field(min_length=1, max_length=2048)
 
 
 def _is_loopback_host(host: str | None) -> bool:
@@ -229,6 +247,62 @@ async def skills_sync(request: Request):
     return _no_store(result)
 
 
+@router.get("/admin/api/skills/telemetry")
+async def skills_telemetry(request: Request):
+    require_loopback_admin(request)
+    return _no_store(skill_telemetry())
+
+
+@router.post("/admin/api/skills/telemetry/reset")
+async def skills_telemetry_reset(request: Request):
+    require_loopback_admin(request)
+    return _no_store(reset_skill_telemetry())
+
+
+@router.get("/admin/api/skills/community")
+async def community_skills(request: Request):
+    require_loopback_admin(request)
+    return _no_store(community_skill_status())
+
+
+@router.post("/admin/api/skills/community/install")
+async def community_skill_install(
+    payload: CommunitySkillInstallPayload,
+    request: Request,
+):
+    require_loopback_admin(request)
+    try:
+        source_url = normalize_github_skill_url(payload.url)
+        content = await _download_skill_document(source_url)
+        result = install_community_skill(content, source_url=source_url)
+    except SkillValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not download SKILL.md ({type(exc).__name__}).",
+        ) from exc
+    return _no_store(result)
+
+
+@router.post("/admin/api/skills/community/{slug}/disable")
+async def community_skill_disable(slug: str, request: Request):
+    require_loopback_admin(request)
+    return _community_skill_action(disable_community_skill, slug)
+
+
+@router.post("/admin/api/skills/community/{slug}/enable")
+async def community_skill_enable(slug: str, request: Request):
+    require_loopback_admin(request)
+    return _community_skill_action(enable_community_skill, slug)
+
+
+@router.post("/admin/api/skills/community/{slug}/rollback")
+async def community_skill_rollback(slug: str, request: Request):
+    require_loopback_admin(request)
+    return _community_skill_action(rollback_community_skill, slug)
+
+
 @router.get("/admin/api/models")
 async def models(
     request: Request,
@@ -267,6 +341,27 @@ def _model_options(
         "models": sorted(configured | discovered, key=str.casefold),
         "failed_providers": list(failed_provider_ids),
     }
+
+
+async def _download_skill_document(url: str) -> str:
+    async with httpx.AsyncClient(
+        timeout=5.0,
+        follow_redirects=False,
+        headers={"User-Agent": "XFCC-Skill-Marketplace/1"},
+    ) as client:
+        response = await client.get(url)
+    response.raise_for_status()
+    if len(response.content) > 100_000:
+        raise SkillValidationError("SKILL.md exceeds the 100 KB marketplace limit.")
+    return response.text
+
+
+def _community_skill_action(action, slug: str) -> JSONResponse:
+    try:
+        result = action(slug)
+    except SkillValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _no_store(result)
 
 
 def _filtered_values(values: Mapping[str, JsonValue]) -> JsonObject:

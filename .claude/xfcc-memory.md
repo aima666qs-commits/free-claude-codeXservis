@@ -25,5 +25,11 @@
 - Manager tests cover idempotency, preservation of existing CLAUDE.md content, and protection of third-party skills.
 - Full repository CI must remain green before release.
 
+## Skill Router, telemetry, and marketplace
+- Provider-bound Messages and Responses requests use deterministic zero-model-call skill routing.
+- Router injects at most two compact skill directives; token counting mirrors the same context.
+- Aggregate telemetry stores no request text and exposes route rate plus estimated context overhead.
+- Community marketplace accepts GitHub SKILL.md only, performs static validation, and supports update/disable/enable/rollback with backups.
+
 ## Next action
-- Verify the feature branch in CI, reconcile any failures, then merge only after checks pass.
+- Verify the Skill Router / marketplace feature branch in CI and merge only after all checks pass.

@@ -22,6 +22,7 @@ from free_claude_code.api.response_streams import (
     terminal_execution_error_response,
     trace_terminal_execution_error,
 )
+from free_claude_code.api.skill_routing import apply_skill_routing
 from free_claude_code.api.web_tools.egress import (
     WebFetchEgressPolicy,
     web_fetch_allowed_scheme_set,
@@ -105,6 +106,8 @@ class MessagesHandler:
 
             result = self._run_message_intercepts(routed)
             if result is None:
+                if not is_safety_classifier_request(routed.request):
+                    routed = apply_skill_routing(routed)
                 logger.debug("No optimization matched, routing to provider")
                 result = _MessagesStreamResult(
                     self._provider_executor.stream(

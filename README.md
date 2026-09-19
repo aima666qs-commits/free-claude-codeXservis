@@ -583,3 +583,27 @@ The Admin UI exposes **Skills + Memory** with live status and manual re-sync. Th
 - `POST /admin/api/skills/sync` — idempotently repair/update the managed layer.
 
 XFCC never overwrites unrelated user or third-party skill directories. Project-specific durable state belongs in `.claude/xfcc-memory.md`; secrets and transient logs must not be stored there.
+
+
+### Automatic Skill Router
+
+XFCC now performs deterministic, zero-model-call skill selection for provider-bound requests. It inspects only recent user text, selects at most two high-signal built-in skills, and injects a compact routing directive into the provider system context. Utility fast paths and safety-classifier requests are not polluted by skill routing. The token-count endpoint mirrors the same injection so client-side counts remain representative.
+
+Routing telemetry is aggregate and local-only. XFCC records counts, selected skill names, estimated original tokens, and estimated injected tokens. It never persists request text.
+
+Admin APIs:
+- `GET /admin/api/skills/telemetry`
+- `POST /admin/api/skills/telemetry/reset`
+
+### Community Skill Marketplace
+
+The local Admin UI can install or update third-party `SKILL.md` files from GitHub. The importer:
+- accepts HTTPS `github.com` / `raw.githubusercontent.com` only;
+- requires a bounded Markdown `SKILL.md` with frontmatter name and description;
+- performs a non-executable static security scan;
+- installs only under `~/.claude/skills/community-*/SKILL.md`;
+- keeps local backups before updates/disables;
+- supports enable, disable, and rollback;
+- never executes downloaded skill content during validation.
+
+Marketplace state and backups live under `~/.claude/xfcc/`.
