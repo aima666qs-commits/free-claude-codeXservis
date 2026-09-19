@@ -1,8 +1,8 @@
 """Idempotent deployment of the managed Claude Code skill pack."""
 
 import os
-from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 
 from .catalog import BUILTIN_SKILLS, ManagedSkill
 
@@ -64,7 +64,7 @@ def _merge_memory_guidance(path: Path) -> bool:
     return _atomic_write(path, merged)
 
 
-def sync_managed_skills() -> dict[str, object]:
+def sync_managed_skills() -> dict[str, Any]:
     """Install/update the XFCC-owned skill files and additive memory guidance."""
     changed: list[str] = []
     root = skills_root()
@@ -93,7 +93,7 @@ def sync_managed_skills() -> dict[str, object]:
     }
 
 
-def managed_skill_status() -> dict[str, object]:
+def managed_skill_status() -> dict[str, Any]:
     """Return non-secret status for the Admin UI."""
     root = skills_root()
     items = []
@@ -110,10 +110,15 @@ def managed_skill_status() -> dict[str, object]:
                 )
             except OSError:
                 state = "unreadable"
-        item = asdict(skill)
-        item.pop("body", None)
-        item.update({"state": state, "path": str(path)})
-        items.append(item)
+        items.append(
+            {
+                "slug": skill.slug,
+                "title": skill.title,
+                "purpose": skill.purpose,
+                "state": state,
+                "path": str(path),
+            }
+        )
     memory_path = managed_root() / "CLAUDE.md"
     memory_state = "missing"
     if memory_path.exists():
