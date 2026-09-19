@@ -16,6 +16,7 @@ def _skill(slug: str, title: str, purpose: str, body: str) -> ManagedSkill:
         slug=slug, title=title, purpose=purpose, body=body.strip() + "\n"
     )
 
+
 BUILTIN_SKILLS: tuple[ManagedSkill, ...] = (
     _skill(
         "discovery-interview",
